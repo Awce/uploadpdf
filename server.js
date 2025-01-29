@@ -1,42 +1,60 @@
 const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const { v4: uuidv4 } = require("uuid"); // Generar nombres únicos para archivos
+const bodyParser = require("body-parser");
+const PdfPrinter = require("pdfmake");
+const vfsFonts = require("pdfmake/build/vfs_fonts"); // Importar las fuentes embebidas
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(bodyParser.json());
 
-// Configuración de multer para manejar archivos
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Carpeta donde se guardarán los archivos
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName); // Generar un nombre único para el archivo
+// Asegurar que vfsFonts está definido correctamente
+const fonts = vfsFonts.pdfMake ? vfsFonts.pdfMake.vfs : vfsFonts.vfs;
+
+// Crear instancia de PdfPrinter con la fuente Helvetica (que está embebida)
+const printer = new PdfPrinter({
+  Helvetica: {
+    normal: "Helvetica",
+    bold: "Helvetica-Bold",
+    italics: "Helvetica-Oblique",
+    bolditalics: "Helvetica-BoldOblique",
   },
 });
 
-const upload = multer({ storage });
+// Asignar correctamente las fuentes embebidas
+printer.vfs = fonts;
 
-// Ruta para manejar la subida de archivos
-app.post("/upload-pdf", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
+// Endpoint para generar PDF
+app.post("/generate-pdf", (req, res) => {
+  const { title, content } = req.body;
 
-  // Construir la URL del archivo guardado (esto asume que el servidor servirá la carpeta `uploads`)
-  const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${
-    req.file.filename
-  }`;
+  const docDefinition = {
+    content: [
+      { text: title, style: "header" },
+      { text: content, style: "body" },
+    ],
+    styles: {
+      header: { fontSize: 18, bold: true, margin: [0, 10, 0, 10] },
+      body: { fontSize: 12, margin: [0, 5, 0, 5] },
+    },
+    defaultStyle: {
+      font: "Helvetica", // Usamos la fuente Helvetica
+    },
+  };
 
-  res.status(200).json({ url: fileUrl });
+  // Generar PDF como stream
+  const pdfDoc = printer.createPdfKitDocument(docDefinition);
+  let chunks = [];
+  pdfDoc.on("data", (chunk) => chunks.push(chunk));
+  pdfDoc.on("end", () => {
+    const pdfBuffer = Buffer.concat(chunks);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=generated.pdf");
+    res.send(pdfBuffer);
+  });
+  pdfDoc.end();
 });
 
-// Servir archivos de la carpeta 'uploads'
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// Inicio del servidor
+// Inicia el servidor
+const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Servidor escuchando en http://localhost:${PORT}`);
 });
