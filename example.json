@@ -1,0 +1,65 @@
+{
+  "autorizante": "Raul Hernandez Rosas",
+  "cif": "HERR8211104W5",
+  "departamento": "Finanzas",
+  "detalles": [
+    {
+      "cantidad": 1,
+      "descripcion": "Software / Licencias  ",
+      "software": "Excel"
+    },
+    {
+      "almacenamiento": "2TB",
+      "cantidad": 1,
+      "color": "Negro",
+      "configuracion": "",
+      "correo": "Sí",
+      "cuenta": "",
+      "descripcion": "Equipos Informáticos  Macbook Pro",
+      "dockstation": "",
+      "equipo": "",
+      "gama": "",
+      "idioma": "",
+      "marca": "HP",
+      "memoria": "",
+      "modelo": "HP200",
+      "procesador": "",
+      "sistema": "",
+      "software": "Claris FileMaker Pro y Office 365 Profesional",
+      "tipo": "",
+      "usuario": "Sí"
+    },
+    {
+      "cantidad": 2,
+      "color": "Azul",
+      "conexion": "",
+      "descripcion": "",
+      "marca": "WD",
+      "modelo": "2025",
+      "notas": ""
+    },
+    {
+      "cantidad": 1,
+      "color": "",
+      "conexion": "",
+      "descripcion": "",
+      "marca": "",
+      "modelo": "",
+      "notas": ""
+    }
+  ],
+  "direccion_entrega": "Justo Sierra 41 Col. Centro",
+  "direccion_fiscal": "Paseo Fucsia MZ 41 Lt 16 Viv 128 Paseos de San Juan",
+  "email_autorizante": "awce5nk@hotmail.com",
+  "email_empresa": "unifacturasmx@gmail.com",
+  "email_solicitante": "awce5nk@hotmail.com",
+  "empresa": "Unifacturas",
+  "fecha_deseada": "24/1/2025",
+  "fecha_maxima": "14/2/2025",
+  "fecha_solicitud": "17/1/2025",
+  "observaciones": "Todo en orden, seguir con la compra",
+  "puesto": "Dev",
+  "solicitante": "Raul Hernandez ",
+  "solicitud_no": "UNi11",
+  "web": "unifacturas.com"
+}

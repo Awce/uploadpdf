@@ -6,9 +6,17 @@
   "author": "awce",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
   "dependencies": {
+    "axios": "^1.7.9",
     "body-parser": "^1.20.3",
     "express": "^4.21.2",
     "pdfmake": "^0.2.18"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }

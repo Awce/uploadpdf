@@ -2,7 +2,6 @@
 
 # Variables iniciales
 Set Variable [ $url ; "http://localhost:3000/upload-pdf" ] 
-Set Variable [ $boundary ; "--------------------------BoundaryForFileMaker" ]
 
 # Generar encabezado para la solicitud HTTP POST
 Set Variable [ $headers ; 
