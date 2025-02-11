@@ -4,7 +4,9 @@ const QRCode = require("qrcode");
 const bwipjs = require("bwip-js");
 const bodyParser = require("body-parser");
 const PdfPrinter = require("pdfmake");
-const generatePdfContent = require("./utils/pdfTemplate"); // 📂 Importamos el diseño del PDF
+const ExcelJS = require("exceljs");
+const generatePdfContent = require("./utils/pdfTemplate");
+const generateExcelContent = require("./utils/excelTemplate");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -27,7 +29,6 @@ app.post("/generate-pdf", async (req, res) => {
   try {
     const docDefinition = await generatePdfContent(req.body);
     const pdfDoc = printer.createPdfKitDocument(docDefinition);
-
     let chunks = [];
     pdfDoc.on("data", (chunk) => chunks.push(chunk));
     pdfDoc.on("end", () => {
@@ -35,11 +36,10 @@ app.post("/generate-pdf", async (req, res) => {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
-        'attachment; filename="solicitud.pdf"'
+        'attachment; filename="documento.pdf"'
       );
       res.send(pdfBuffer);
     });
-
     pdfDoc.end();
   } catch (error) {
     console.error("⚠️ Error generando PDF:", error.message);
@@ -47,68 +47,65 @@ app.post("/generate-pdf", async (req, res) => {
   }
 });
 
-// 🔹 Endpoint para generar codigo QR
+// 🔹 Endpoint para generar archivo Excel
+app.post("/generate-excel", async (req, res) => {
+  try {
+    const { columns, data } = req.body;
+
+    // Validación básica
+    if (!columns || !data) {
+      return res.status(400).send("Faltan columnas o datos en el JSON.");
+    }
+
+    const workbook = await generateExcelContent({ columns, data });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", 'attachment; filename="datos.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("⚠️ Error generando Excel:", error.message);
+    res.status(500).send("Error interno del servidor");
+  }
+});
+
+// 🔹 Endpoint para generar código QR
 app.get("/generate-qr", async (req, res) => {
   const url = req.query.url;
-  const size = parseInt(req.query.size) || 150; // Tamaño predeterminado 150x150 px
-  const color = req.query.color || "#000000"; // Color predeterminado negro
-  const bgColor = req.query.bgColor || "#ffffff"; // Fondo predeterminado blanco
-
   if (!url) {
     return res.status(400).send("URL is required");
   }
-
   try {
-    // Generar el código QR con tamaño personalizado (150x150 px)
-    const qrCodeData = await QRCode.toDataURL(url, {
-      width: size,
-      color: {
-        dark: color, // Color de los módulos
-        light: bgColor, // Color de fondo
-      },
-    });
-
-    // Establecer el tipo de contenido para que sea una imagen
+    const qrCodeData = await QRCode.toDataURL(url);
+    const imgBuffer = Buffer.from(
+      qrCodeData.replace(/^data:image\/png;base64,/, ""),
+      "base64"
+    );
     res.setHeader("Content-Type", "image/png");
-
-    // Enviar el código QR como una imagen
-    const imgData = qrCodeData.replace(/^data:image\/png;base64,/, "");
-    const imgBuffer = Buffer.from(imgData, "base64");
-
-    // Enviar la imagen en formato binario
     res.send(imgBuffer);
   } catch (err) {
     res.status(500).send("Error generating QR code");
   }
 });
 
-// 🔹 Endpoint para generar codigo de barras
-app.get("/generate-barcode", (req, res) => {
-  const text = req.query.text || "123456789012"; // Valor predeterminado si no se proporciona el parámetro `text`
-  const width = parseInt(req.query.width) || 2; // Ancho de las barras
-  const height = parseInt(req.query.height) || 100; // Altura de las barras
-  const format = req.query.format || "code128"; // Formato de código de barras predeterminado (Code 128)
-
+// 🔹 Endpoint para generar código de barras
+app.get("/generate-barcode", async (req, res) => {
+  const text = req.query.text || "123456789012";
   try {
-    bwipjs.toBuffer(
-      {
-        bcid: format, // Tipo de código de barras (Code 128, EAN, UPC, etc.)
-        text: text, // El texto que debe codificarse en el código de barras
-        scale: width, // Ancho de las barras
-        height: height, // Altura de las barras
-        includetext: true, // Incluir el texto debajo del código de barras
-        textxalign: "center", // Alinear el texto en el centro
-      },
-      function (err, png) {
-        if (err) {
-          return res.status(500).send("Error generating barcode");
-        }
-
-        // Establecer el tipo de contenido como imagen PNG
-        res.setHeader("Content-Type", "image/png");
-        res.send(png);
-      }
-    );
+    const png = await bwipjs.toBuffer({
+      bcid: "code128",
+      text: text,
+      scale: 2,
+      height: 100,
+      includetext: true,
+      textxalign: "center",
+    });
+    res.setHeader("Content-Type", "image/png");
+    res.send(png);
   } catch (err) {
     res.status(500).send("Error generating barcode");
   }

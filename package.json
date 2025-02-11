@@ -15,6 +15,7 @@
     "body-parser": "^1.20.3",
     "bwip-js": "^4.5.1",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "pdfmake": "^0.2.18",
     "qrcode": "^1.5.4"
